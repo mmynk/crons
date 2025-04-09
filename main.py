@@ -4,6 +4,8 @@ import os
 from currency import send_currency_alert
 
 def load_env():
+    if not os.path.exists(".env"):
+        return
     with open(".env", "r") as f:
         for line in f:
             key, value = line.strip().split("=")
