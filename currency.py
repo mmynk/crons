@@ -37,7 +37,7 @@ def send_currency_alert(source: str, target: str, email: str):
         source (str): The source currency.
         target (str): The target currency.
     """
-    logger.info("Sending exchange rate between %s:%s to %s", source, target, email)
+    logger.info("Sending exchange rate between %s:%s", source, target)
     try:
         exchange_rate = get_exchange_rate(source, target)
     except ValueError as e:
