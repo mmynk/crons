@@ -1,0 +1,22 @@
+name: Currency Alert
+
+on:
+  schedule:
+    # every day at 1200 UTC (0400 PT, 0700 CT, 0800 ET)
+    - cron: "0 12 * * *"
+
+jobs:
+  currency-alert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Run currency alert
+        run: |
+          python main.py currency -s USD -t INR -e ${{ secrets.ALERT_EMAIL }}
