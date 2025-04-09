@@ -5,18 +5,46 @@ on:
     # every day at 1200 UTC (0400 PT, 0700 CT, 0800 ET)
     - cron: "0 12 * * *"
 
+  workflow_dispatch:
+    inputs:
+      source_currency:
+        description: "Source currency"
+        required: false
+        default: "USD"
+      target_currency:
+        description: "Target currency"
+        required: false
+        default: "INR"
+      email:
+        description: "Alert email address"
+        required: true
+
 jobs:
   currency-alert:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.12"
+
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+
+      - name: Determine inputs
+        id: inputs
+        run: |
+          echo "source_currency=${{ github.event.inputs.source_currency || 'USD' }}" >> $GITHUB_OUTPUT
+          echo "target_currency=${{ github.event.inputs.target_currency || 'INR' }}" >> $GITHUB_OUTPUT
+          echo "email=${{ github.event.inputs.email || secrets.ALERT_EMAIL }}" >> $GITHUB_OUTPUT
+
       - name: Run currency alert
         run: |
-          python main.py currency -s USD -t INR -e ${{ secrets.ALERT_EMAIL }}
+          echo "Converting ${{ steps.inputs.outputs.source_currency }} to ${{ steps.inputs.outputs.target_currency }}."
+          python main.py currency \
+            -s "${{ steps.inputs.outputs.source_currency }}" \
+            -t "${{ steps.inputs.outputs.target_currency }}" \
+            -e "${{ steps.inputs.outputs.email }}"
