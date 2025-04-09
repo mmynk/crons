@@ -22,11 +22,16 @@ on:
 jobs:
   currency-alert:
     runs-on: ubuntu-latest
+    env:
+      EXCHANGE_RATE_API_KEY: ${{ secrets.EXCHANGE_RATE_API_KEY }}
+      GOOGLE_EMAIL: ${{ secrets.GOOGLE_EMAIL }}
+      GOOGLE_APP_PASSWORD: ${{ secrets.GOOGLE_APP_PASSWORD }}
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
