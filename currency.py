@@ -43,6 +43,11 @@ def send_currency_alert(source: str, target: str, email: str):
     except ValueError as e:
         logger.error("Failed to get exchange rate: %s", e)
         return
-    send_email(f"Currency Alert: {source} to {target}",
-               f"The conversion rate between {source} and {target} is {exchange_rate}.", email)
+    try:
+        subject = f"Currency Alert: {source} to {target}"
+        body = f"The conversion rate between {source} and {target} is {exchange_rate}."
+        send_email(subject, body, email)
+    except Exception as e:
+        logger.error("Failed to send email: %s", e)
+        return
     logger.info("Sent currency alert successfully.")
