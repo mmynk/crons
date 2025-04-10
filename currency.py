@@ -1,4 +1,4 @@
-import os
+from datetime import datetime, timedelta
 
 import requests
 
@@ -8,24 +8,36 @@ from mail import send_email
 logger = get_logger(__name__)
 
 
-def get_exchange_rate(source: str, target: str) -> float:
+def get_exchange_rate(source: str, target: str) -> tuple[float, float, float]:
     """
     Get the exchange rate between the source and target currencies.
+
+    Returns:
+        tuple[float, float, float]: The exchange rate today, yesterday, and the difference in percentage.
     """
-    api_key = os.getenv("EXCHANGE_RATE_API_KEY")
-    url = f"https://v6.exchangerate-api.com/v6/{api_key}/latest/{source}"
+    now = datetime.now()
+    yesterday = (now - timedelta(days=1)).strftime("%Y-%m-%d")
+    today = now.strftime("%Y-%m-%d")
+    url = f"https://api.frankfurter.app/{yesterday}..{today}?from={source}&to={target}"
     logger.info("Fetching exchange rate for %s", source)
     response = requests.get(url)
     if response.status_code != 200:
         raise ValueError(f"Failed to fetch exchange rate for {source}: {response.status_code} {response.text}")
     data = response.json()
     logger.info("Exchange rate fetched successfully.")
-    if target not in data["conversion_rates"]:
-        raise ValueError(f"Target currency {target} not found in the response.")
-    rate = data["conversion_rates"][target]
-    logger.info("Exchange rate %s:%s = %s", source, target, rate)
-    return rate
+    if not data["rates"] or not data["rates"][yesterday] or not data["rates"][today]:
+        raise ValueError("Missing rates in the response.")
 
+    rates = data["rates"]
+    yesterday_rate = rates[yesterday]
+    today_rate = rates[today]
+    if not yesterday_rate[target] or not today_rate[target]:
+        raise ValueError("Missing target rate in the response.")
+    yesterday_rate = yesterday_rate[target]
+    today_rate = today_rate[target]
+
+    diff = (today_rate - yesterday_rate) / yesterday_rate
+    return today_rate, yesterday_rate, diff
 
 
 def send_currency_alert(source: str, target: str, email: str):
@@ -39,15 +51,24 @@ def send_currency_alert(source: str, target: str, email: str):
     """
     logger.info("Sending exchange rate between %s:%s", source, target)
     try:
-        exchange_rate = get_exchange_rate(source, target)
+        today_rate, yesterday_rate, diff = get_exchange_rate(source, target)
+        logger.info("Exchange rate between %s:%s is today=%s, yesterday=%s, diff=%s", source, target, today_rate, yesterday_rate, diff)
     except ValueError as e:
         logger.error("Failed to get exchange rate: %s", e)
         return
+
+    message = f"The conversion rate between {source} and {target} is {today_rate},"
+    if diff < 0:
+        message += " down"
+    else:
+        message += " up"
+    message += f" {abs(diff):.2f}% from {yesterday_rate}."
     try:
         subject = f"Currency Alert: {source} to {target}"
-        body = f"The conversion rate between {source} and {target} is {exchange_rate}."
+        body = message
         send_email(subject, body, email)
     except Exception as e:
         logger.error("Failed to send email: %s", e)
         return
+
     logger.info("Sent currency alert successfully.")
