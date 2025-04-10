@@ -22,6 +22,7 @@ on:
 jobs:
   currency-alert:
     runs-on: ubuntu-latest
+    environment: "currency"
     env:
       EXCHANGE_RATE_API_KEY: ${{ secrets.EXCHANGE_RATE_API_KEY }}
       GOOGLE_EMAIL: ${{ secrets.GOOGLE_EMAIL }}
