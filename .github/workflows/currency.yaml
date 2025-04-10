@@ -2,8 +2,8 @@ name: Currency Alert
 
 on:
   schedule:
-    # every day at 1200 UTC (0400 PT, 0700 CT, 0800 ET)
-    - cron: "0 12 * * *"
+    # every day at 10:15 AM UTC (03:15 AM PT, 05:15 AM CT, 06:15 AM ET)
+    - cron: "15 10 * * *"
 
   workflow_dispatch:
     inputs:
