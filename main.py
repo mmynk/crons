@@ -22,7 +22,7 @@ def main():
     currency_parser = subparsers.add_parser("currency")
     currency_parser.add_argument("-s", "--source", type=str, required=True, help="Source currency")
     currency_parser.add_argument("-t", "--target", type=str, required=True, help="Target currency")
-    currency_parser.add_argument("-e", "--email", type=str, required=True, help="Alert email")
+    currency_parser.add_argument("-e", "--email", type=str, required=False, default=None, help="Alert email")
 
     args = parser.parse_args()
 

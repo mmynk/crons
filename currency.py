@@ -63,12 +63,17 @@ def send_currency_alert(source: str, target: str, email: str):
     else:
         message += " up"
     message += f" {abs(diff):.2f}% from {yesterday_rate}."
-    try:
-        subject = f"Currency Alert: {source} to {target}"
-        body = message
-        send_email(subject, body, email)
-    except Exception as e:
-        logger.error("Failed to send email: %s", e)
-        return
+
+    if email:
+        try:
+            subject = f"Currency Alert: {source} to {target}"
+            body = message
+            send_email(subject, body, email)
+        except Exception as e:
+            logger.error("Failed to send email: %s", e)
+            return
+    else:
+        logger.info("No email provided, skipping email send.")
+        logger.info(message)
 
     logger.info("Sent currency alert successfully.")
